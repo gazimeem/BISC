@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>get_iat_pointer (BISC)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File lib/bisc.rb, line 282</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_iat_pointer</span>(<span class="ruby-identifier">dll_name</span>, <span class="ruby-identifier">function_name</span>)
+    <span class="ruby-ivar">@modules</span>.<span class="ruby-identifier">values</span>.<span class="ruby-identifier">each</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">pe</span><span class="ruby-operator">|</span>
+      <span class="ruby-identifier">pe</span>.<span class="ruby-identifier">imports</span>.<span class="ruby-identifier">each</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">import</span><span class="ruby-operator">|</span>
+        <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">import</span>.<span class="ruby-identifier">name</span>.<span class="ruby-identifier">casecmp</span>(<span class="ruby-identifier">dll_name</span>) <span class="ruby-operator">==</span> <span class="ruby-value">0</span>)
+          <span class="ruby-identifier">import</span>.<span class="ruby-identifier">entries</span>.<span class="ruby-identifier">each_with_index</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">entry</span>, <span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+            <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">entry</span>.<span class="ruby-identifier">name</span>.<span class="ruby-identifier">casecmp</span>(<span class="ruby-identifier">function_name</span>) <span class="ruby-operator">==</span> <span class="ruby-value">0</span>)
+              <span class="ruby-identifier">rva</span> = <span class="ruby-identifier">_get_iat_vma</span>(<span class="ruby-identifier">pe</span>, <span class="ruby-identifier">dll_name</span>)
+              
+              <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">rva</span> <span class="ruby-operator">+</span> (<span class="ruby-identifier">i</span> <span class="ruby-operator">*</span> <span class="ruby-value">4</span>)
+            <span class="ruby-keyword kw">end</span>
+          }
+        <span class="ruby-keyword kw">end</span>
+      }
+    }
+    
+    <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span>
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

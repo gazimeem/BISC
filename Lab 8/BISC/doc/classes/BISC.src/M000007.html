@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>_get_iat_vma (BISC)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File lib/bisc.rb, line 300</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">_get_iat_vma</span>(<span class="ruby-identifier">pe</span>, <span class="ruby-identifier">fordll</span>)
+    <span class="ruby-comment cmt">#</span>
+    <span class="ruby-comment cmt"># Parse import tables (manually b/c peparsey throws away data we need)</span>
+    <span class="ruby-comment cmt">#</span>
+    <span class="ruby-identifier">idata_entry</span> = <span class="ruby-identifier">pe</span>.<span class="ruby-identifier">_optional_header</span>[<span class="ruby-value str">'DataDirectory'</span>][<span class="ruby-value">1</span>]
+    <span class="ruby-identifier">rva</span> = <span class="ruby-identifier">idata_entry</span>.<span class="ruby-identifier">v</span>[<span class="ruby-value str">'VirtualAddress'</span>]
+    <span class="ruby-identifier">size</span> = <span class="ruby-identifier">idata_entry</span>.<span class="ruby-identifier">v</span>[<span class="ruby-value str">'Size'</span>]
+    
+    <span class="ruby-identifier">idata</span> = <span class="ruby-identifier">pe</span>.<span class="ruby-identifier">_isource</span>.<span class="ruby-identifier">read</span>(<span class="ruby-identifier">pe</span>.<span class="ruby-identifier">rva_to_file_offset</span>(<span class="ruby-identifier">rva</span>), <span class="ruby-identifier">size</span>)
+    <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">idata</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-constant">Rex</span><span class="ruby-operator">::</span><span class="ruby-constant">PeParsey</span><span class="ruby-operator">::</span><span class="ruby-constant">PeBase</span><span class="ruby-operator">::</span><span class="ruby-constant">IMAGE_IMPORT_DESCRIPTOR_SIZE</span>
+      <span class="ruby-identifier">descriptor</span> = <span class="ruby-constant">Rex</span><span class="ruby-operator">::</span><span class="ruby-constant">PeParsey</span><span class="ruby-operator">::</span><span class="ruby-constant">PeBase</span><span class="ruby-operator">::</span><span class="ruby-constant">IMAGE_IMPORT_DESCRIPTOR</span>.<span class="ruby-identifier">make_struct</span>
+      <span class="ruby-identifier">descriptor</span>.<span class="ruby-identifier">from_s</span>(<span class="ruby-identifier">idata</span>)
+      <span class="ruby-identifier">idata</span> = <span class="ruby-identifier">descriptor</span>.<span class="ruby-identifier">leftover</span>
+      
+      <span class="ruby-identifier">dllname</span> =
+        <span class="ruby-identifier">pe</span>.<span class="ruby-identifier">_isource</span>.<span class="ruby-identifier">read_asciiz</span>(<span class="ruby-identifier">pe</span>.<span class="ruby-identifier">rva_to_file_offset</span>(<span class="ruby-identifier">descriptor</span>.<span class="ruby-identifier">v</span>[<span class="ruby-value str">'Name'</span>]))
+      
+      <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">dllname</span>.<span class="ruby-identifier">casecmp</span>(<span class="ruby-identifier">fordll</span>) <span class="ruby-operator">==</span> <span class="ruby-value">0</span>)
+        <span class="ruby-identifier">iat_rva</span> = <span class="ruby-identifier">descriptor</span>.<span class="ruby-identifier">v</span>[<span class="ruby-value str">'FirstThunk'</span>]
+        <span class="ruby-identifier">iat_vma</span> = <span class="ruby-identifier">pe</span>.<span class="ruby-identifier">rva_to_vma</span>(<span class="ruby-identifier">iat_rva</span>)
+        <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">iat_vma</span>
+      <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span>
+    
+    <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span>
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>
